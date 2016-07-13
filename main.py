@@ -1,9 +1,72 @@
 import cv2
 import numpy as np 
 
+SPIKE_FACTOR = 5
+
+#to see if hit
+touch = 0
+center_touch = (1,1)
+
 def nothing(x):
 	pass
 
+class Derivative(object):
+
+	def __init__(self):
+
+		self.x = []
+		self.y = []
+		self.der = []
+
+	def findDer(self):
+		
+		if len(self.x) > 1:
+
+			if self.x[-1] != self.x[-2]:
+
+				self.der.append((self.y[-1] - self.y[-2])/(self.x[-1] - self.x[-2]))
+
+			else:
+				self.der.append(10000)
+
+		if len(self.der) > 4:
+			self.der.pop(1)
+
+		self.checkHit()
+
+	def checkHit(self):
+
+		if len(self.der) == 4:
+
+			avg = 0
+
+			for i in range(1,4):
+
+				avg += self.der[-i - 1]
+
+			avg /= 3
+
+			if self.der[-1]/avg >= 5:
+
+				print 1
+				touch = 1
+				center_touch = (x,y)
+
+	def add(self, x, y):
+
+		self.x.append(x)
+		self.y.append(y)
+
+		if len(self.x) >2:
+
+			self.x.pop(1)
+			self.y.pop(1)
+
+		self.findDer()
+
+
+
+hit = Derivative()
 
 cap = cv2.VideoCapture(0)
 
@@ -21,6 +84,8 @@ FINAL_MAX = np.array([30+10, 255, 255])
 
 
 #To accept the value for H that is suitable for the ball
+x_arr = []
+y_arr = []
 
 
 while(1):
@@ -51,11 +116,15 @@ while(1):
 	#If the color is chosen by the user
 	if cv2.waitKey(1) & 0xFF == ord('y'):
 		
+		print 1
 		FINAL_MIN = COLOR_MIN
 		FINAL_MAX = COLOR_MAX	
 		break
 
 #To detect the ball
+
+prev_radius = 0
+
 while(1):
 	
 	ret, frame = cap.read()
@@ -76,7 +145,7 @@ while(1):
 	cnts = cv2.findContours(frame_threshold.copy(), cv2.RETR_EXTERNAL,
 		cv2.CHAIN_APPROX_SIMPLE)[-2]
 	
-	center = None
+	center = None	
 
 	if len(cnts) > 0:
 		
@@ -85,6 +154,8 @@ while(1):
 		# centroid
 		c = max(cnts, key=cv2.contourArea)
 		((x, y), radius) = cv2.minEnclosingCircle(c)
+		x_arr.append(x)
+		y_arr.append(y)
 		
 		M = cv2.moments(c)
 		
@@ -94,7 +165,23 @@ while(1):
 				(0, 255, 255), 2)
 		
 		cv2.circle(frame, center, 5, (0, 0, 255), -1)
-	
+		
+		#Derivative thing
+		hit.add(x,y)
+
+		'''
+		#Old Approach
+		if radius - prev_radius > radius*0.2:
+			touch = 1
+			center_touch = center
+		'''
+
+
+		prev_radius = radius
+
+
+	if touch:
+		cv2.circle(frame, center_touch, 10, (255, 0, 0), -1)
 
 	cv2.imshow('video', frame)
 	cv2.imshow('detail',frame_threshold)
@@ -107,3 +194,14 @@ while(1):
 
 cap.release()
 cv2.destroyAllWindows()
+
+
+x_arr = np.array(map(lambda x:float(x),x_arr))
+y_arr = np.array(map(lambda x:float(x),y_arr))
+
+y_der = (y_arr[1:]-y_arr[:-1])/(x_arr[1:]-x_arr[:-1])
+
+import matplotlib.pyplot as plt
+plt.plot(x_arr,y_arr)
+plt.plot(y_der)
+plt.show()
