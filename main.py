@@ -122,41 +122,44 @@ FINAL_MAX = np.array([30+10, 255, 255])
 x_arr = []
 y_arr = []
 
-'''
-while(1):
+choice = raw_input("Do you want to calibrate?(y or n) ")
 
-	ret, frame = cap.read()
+if choice == 'y':
 
-	#Input from trackbar
-	h = cv2.getTrackbarPos('H', 'video')
-	
-	#Min, Max colors according to hue chosen
-	COLOR_MIN = np.array([h-10, 100, 100])
-	COLOR_MAX = np.array([h+10, 255, 255])
+	while(1):
 
-	#Change to HSV
-	hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+		ret, frame = cap.read()
 
-
-	#Threshold according to value
-	frame_threshold = cv2.inRange(hsv_frame, COLOR_MIN, COLOR_MAX)
-
-	#Display the image
-	cv2.imshow('video', frame_threshold)
-
-	#To go to the default value
-	if cv2.waitKey(1) & 0xFF == ord('q'):
-		break
-
-	#If the color is chosen by the user
-	if cv2.waitKey(1) & 0xFF == ord('y'):
+		#Input from trackbar
+		h = cv2.getTrackbarPos('H', 'video')
 		
-		print 1
-		FINAL_MIN = COLOR_MIN
-		FINAL_MAX = COLOR_MAX	
-		break
+		#Min, Max colors according to hue chosen
+		COLOR_MIN = np.array([h-10, 100, 100])
+		COLOR_MAX = np.array([h+10, 255, 255])
 
-'''
+		#Change to HSV
+		hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+
+		#Threshold according to value
+		frame_threshold = cv2.inRange(hsv_frame, COLOR_MIN, COLOR_MAX)
+
+		#Display the image
+		cv2.imshow('video', frame_threshold)
+
+		#To go to the default value
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
+
+		#If the color is chosen by the user
+		if cv2.waitKey(1) & 0xFF == ord('y'):
+			
+			print 1
+			FINAL_MIN = COLOR_MIN
+			FINAL_MAX = COLOR_MAX	
+			break
+
+
 
 #To detect the ball
 
