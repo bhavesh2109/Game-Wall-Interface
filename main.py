@@ -3,20 +3,21 @@ import numpy as np
 
 SPIKE_FACTOR = 5
 
-#to see if hit
-touch = 0
-center_touch = (1,1)
 
 def nothing(x):
 	pass
 
 class Derivative(object):
 
+
 	def __init__(self):
 
 		self.x = []
 		self.y = []
 		self.der = []
+		self.touch = 0
+		self.center = (1,1)
+
 
 	def findDer(self):
 		
@@ -26,11 +27,15 @@ class Derivative(object):
 
 				self.der.append((self.y[-1] - self.y[-2])/(self.x[-1] - self.x[-2]))
 
+				print str(self.der[-1]) 
+
 			else:
 				self.der.append(10000)
 
+
+
 		if len(self.der) > 4:
-			self.der.pop(1)
+			self.der.pop(0)
 
 		self.checkHit()
 
@@ -48,9 +53,14 @@ class Derivative(object):
 
 			if self.der[-1]/avg >= 5:
 
-				print 1
-				touch = 1
-				center_touch = (x,y)
+				print "hit"
+
+				self.touch = 1
+				self.center = (int(self.x[-1]) , int(self.y[-1]))
+
+
+
+
 
 	def add(self, x, y):
 
@@ -59,8 +69,8 @@ class Derivative(object):
 
 		if len(self.x) >2:
 
-			self.x.pop(1)
-			self.y.pop(1)
+			self.x.pop(0)
+			self.y.pop(0)
 
 		self.findDer()
 
@@ -87,7 +97,7 @@ FINAL_MAX = np.array([30+10, 255, 255])
 x_arr = []
 y_arr = []
 
-
+'''
 while(1):
 
 	ret, frame = cap.read()
@@ -120,6 +130,8 @@ while(1):
 		FINAL_MIN = COLOR_MIN
 		FINAL_MAX = COLOR_MAX	
 		break
+
+'''
 
 #To detect the ball
 
@@ -169,19 +181,10 @@ while(1):
 		#Derivative thing
 		hit.add(x,y)
 
-		'''
-		#Old Approach
-		if radius - prev_radius > radius*0.2:
-			touch = 1
-			center_touch = center
-		'''
-
-
 		prev_radius = radius
 
-
-	if touch:
-		cv2.circle(frame, center_touch, 10, (255, 0, 0), -1)
+	if hit.touch:
+		cv2.circle(frame, hit.center, 10, (255, 0, 0), -1)
 
 	cv2.imshow('video', frame)
 	cv2.imshow('detail',frame_threshold)
