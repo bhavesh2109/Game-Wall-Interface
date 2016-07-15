@@ -1,8 +1,9 @@
 import cv2
 import numpy as np 
+from math import atan
 
 SPIKE_FACTOR = 5
-
+PI = 3.14159265
 
 def nothing(x):
 	pass
@@ -25,12 +26,12 @@ class Derivative(object):
 
 			if self.x[-1] != self.x[-2]:
 
-				self.der.append((self.y[-1] - self.y[-2])/(self.x[-1] - self.x[-2]))
+				self.der.append(atan((self.y[-1] - self.y[-2])/(self.x[-1] - self.x[-2])))
 
 				print str(self.der[-1]) 
 
 			else:
-				self.der.append(10000)
+				self.der.append(PI/2)
 
 
 
@@ -51,7 +52,10 @@ class Derivative(object):
 
 			avg /= 3
 
-			if self.der[-1]/avg >= 5:
+			if avg == 0:
+				pass
+
+			elif self.der[-1]/avg >= 5:
 
 				print "hit"
 
