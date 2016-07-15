@@ -1,9 +1,17 @@
 import cv2
 import numpy as np 
 from math import atan
+import time
 
-SPIKE_FACTOR = 5
+SPIKE_FACTOR = 90	#Enter in degrees
 PI = 3.14159265
+
+#Minimum time between two successive hits
+TIME_THRESH	= 2	#Enter in seconds
+
+#For converting degrees to radians
+SPIKE_FACTOR = SPIKE_FACTOR*PI/180
+
 
 def nothing(x):
 	pass
@@ -18,7 +26,7 @@ class Derivative(object):
 		self.der = []
 		self.touch = 0
 		self.center = (1,1)
-
+		self.hit_time = time.time()
 
 	def findDer(self):
 		
@@ -28,7 +36,7 @@ class Derivative(object):
 
 				self.der.append(atan((self.y[-1] - self.y[-2])/(self.x[-1] - self.x[-2])))
 
-				print str(self.der[-1]) 
+				#print str(self.der[-1]) 
 
 			else:
 				self.der.append(PI/2)
@@ -42,25 +50,38 @@ class Derivative(object):
 
 	def checkHit(self):
 
-		if len(self.der) == 4:
+		if len(self.der) > 1:
 
-			avg = 0
+			if len(self.der) == 4:
 
-			for i in range(1,4):
+				#For Average
+				avg = 0
 
-				avg += self.der[-i - 1]
+				for i in range(1,4):
 
-			avg /= 3
+					avg += self.der[-i - 1]
 
-			if avg == 0:
-				pass
+				avg /= 3
 
-			elif self.der[-1]/avg >= 5:
+			else:
 
-				print "hit"
+				avg = 0
+
+				for i in range(1, len(self.der)):
+
+					avg += self.der[-i - 1]
+
+				avg /= len(self.der) - 1
+
+			
+			print str(avg) + "\t" +str(self.der[-1]) 
+
+			if abs(self.der[-1] - avg) >= SPIKE_FACTOR and time.time() - self.hit_time > TIME_THRESH:
+
+				self.hit_time = time.time()
 
 				self.touch = 1
-				self.center = (int(self.x[-1]) , int(self.y[-1]))
+				self.center = (int((self.x[-1] + self.x[-2])/2), int((self.y[-1] + self.y[-2])/2))
 
 
 
@@ -206,9 +227,9 @@ cv2.destroyAllWindows()
 x_arr = np.array(map(lambda x:float(x),x_arr))
 y_arr = np.array(map(lambda x:float(x),y_arr))
 
-y_der = (y_arr[1:]-y_arr[:-1])/(x_arr[1:]-x_arr[:-1])
+y_der = np.arctan((y_arr[1:]-y_arr[:-1])/(x_arr[1:]-x_arr[:-1]))
 
 import matplotlib.pyplot as plt
-plt.plot(x_arr,y_arr)
+#plt.plot(x_arr,y_arr)
 plt.plot(y_der)
 plt.show()
